@@ -8,12 +8,13 @@ The frontend is a static single-page app and can stay on GitHub Pages at no host
 2. In repository Settings → Pages, select **Deploy from a branch**, branch `main`, folder `/ (root)` (or retain the repository's existing Pages workflow if one is configured).
 3. Wait for the Pages deployment to finish, then open https://kayrootyt.github.io/codemitra-app/.
 
-## Connect the Oracle-hosted backend
+## Connect the no-card Render backend
 
-1. Open CodeMitra → Settings.
-2. Set **Backend server URL** to the HTTPS hostname configured for the API, for example `https://api.example.com` (no trailing slash is needed).
-3. Save and run the backend health check.
-4. Ensure the backend's `ALLOWED_ORIGINS` contains exactly `https://kayrootyt.github.io`.
+1. Deploy the backend using the instructions in [the backend Render guide](https://github.com/KayrootYT/codemitra-backend/blob/feature/codemitra-quality-upgrade/DEPLOYMENT_RENDER.md).
+2. Copy its HTTPS `onrender.com` URL.
+3. Open CodeMitra → Settings.
+4. Set **Backend server URL** to that URL (no trailing slash is needed), save, and run the backend health check.
+5. Ensure backend `ALLOWED_ORIGINS` contains `https://kayrootyt.github.io`.
 
 The backend URL is saved in the current browser's local storage. It is not a build-time secret and should not contain API keys. Never put NVIDIA, Hugging Face, or ElevenLabs credentials in this frontend repository.
 
