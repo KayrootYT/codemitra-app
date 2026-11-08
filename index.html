@@ -84,14 +84,18 @@ function cpm(i){try{navigator.clipboard.writeText(chat().m[i].c)}catch(e){}}
 function ask(t){$("in").value=t;send()}
 var busy=false;
 async function send(){var q=$("in").value.trim();if(!q||busy)return;$("in").value="";$("in").style.height="auto";
- if(!chat())newChat();var c=chat();if(!c.m.length)c.t=q.slice(0,40);c.m.push({r:"u",c:q});render();
- busy=true;$("main").insertAdjacentHTML("beforeend",'<div class="m b" id="ty"><div class="dots"><span></span><span></span><span></span></div></div>');$("main").scrollTop=1e9;
- var ctx=c.m.slice(-7,-1).map(function(m){return(m.r==="u"?"User: ":"Assistant: ")+m.c}).join("\n");
- var msg=ctx?"Previous conversation:\n"+ctx+"\n\nNew question: "+q:q;
- var slow=setTimeout(function(){var t=$("ty");if(t)t.innerHTML="<small>"+T("wait")+"</small>"},6000);
- try{var r=await fetch(S.url+"/chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({message:msg,lang:S.lang})});
-  var j=await r.json();if(!j.reply)throw 0;c.m.push({r:"a",c:j.reply});sv();clearTimeout(slow);busy=false;render();if(S.auto)speak(c.m.length-1)}
- catch(e){clearTimeout(slow);busy=false;c.m.push({r:"a",c:T("err")});sv();render()}}
+ if(!chat())newChat();var c=chat();if(!c.m.length)c.t=q.slice(0,40);
+ var hist=c.m.slice(-6).map(function(m){return{role:m.r==="u"?"user":"assistant",content:m.c}});
+ c.m.push({r:"u",c:q});render();busy=true;
+ $("main").insertAdjacentHTML("beforeend",'<div class="m b" id="ty"><div class="dots"><span></span><span></span><span></span></div></div>');$("main").scrollTop=1e9;
+ var slow=setTimeout(function(){var t=$("ty");if(t&&t.querySelector(".dots"))t.innerHTML="<small>"+T("wait")+"</small>"},6000);
+ var full="";
+ try{var r=await fetch(S.url+"/chat/stream",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({message:q,lang:S.lang,history:hist})});
+  if(!r.ok||!r.body)throw 0;var rd=r.body.getReader(),dc=new TextDecoder();
+  while(true){var x=await rd.read();if(x.done)break;full+=dc.decode(x.value,{stream:true});clearTimeout(slow);var t=$("ty");if(t)t.innerHTML=md(full);$("main").scrollTop=1e9}
+  if(!full.trim())throw 0;c.m.push({r:"a",c:full})}
+ catch(e){c.m.push({r:"a",c:full||T("err")})}
+ clearTimeout(slow);busy=false;sv();render();if(S.auto&&full)say(full)}
 $("in").addEventListener("input",function(){this.style.height="auto";this.style.height=this.scrollHeight+"px"});
 $("in").addEventListener("keydown",function(e){if(e.key==="Enter"&&!e.shiftKey&&innerWidth>700){e.preventDefault();send()}});
 var V=[];function lv(){try{V=speechSynthesis.getVoices()}catch(e){}}lv();try{speechSynthesis.onvoiceschanged=lv}catch(e){}
